@@ -1,2 +1,6 @@
+FILES = __init__.py player.py
+
 all:
-	../mch2022-tools/webusb_fat_push.py __init__.py /flash/apps/python/boogiebadge/__init__.py
+	for file in $(FILES); do \
+		../mch2022-tools/webusb_fat_push.py $$file /flash/apps/python/boogiebadge/$$file; \
+	done
