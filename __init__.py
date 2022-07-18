@@ -55,7 +55,7 @@ class StepSequencer:
             self.unhighlight_column()
             self.active_column = column
             if column is not None:
-                self.render_column(column, 0x008800)
+                self.render_column(column, 0x00cc00)
         if flush:
             display.flush()
 
@@ -63,6 +63,7 @@ class StepSequencer:
 sequencer = StepSequencer(track.pattern)
 sequencer.render_all()
 player.on_play_row(lambda row: sequencer.highlight_column(row, flush=True))
+player.on_stop(lambda: sequencer.unhighlight_column(flush=True))
 
 def tick(t):
     player.tick()
@@ -72,9 +73,15 @@ timer = machine.Timer(0)
 timer.init(period=20, callback=tick)
 
 
-def on_action_btn(pressed):
+def on_btn_a(pressed):
     if pressed:
         player.start()
 
-buttons.attach(buttons.BTN_A, on_action_btn)
-buttons.attach(buttons.BTN_B, lambda pressed: system.launcher())
+def on_btn_b(pressed):
+    if pressed:
+        player.stop()
+
+
+buttons.attach(buttons.BTN_A, on_btn_a)
+buttons.attach(buttons.BTN_B, on_btn_b)
+buttons.attach(buttons.BTN_HOME, lambda pressed: system.launcher())

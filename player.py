@@ -79,6 +79,9 @@ class Channel:
     def start(self):
         sndmixer.play(self.id)
 
+    def stop(self):
+        sndmixer.pause(self.id)
+
     def load_row(self, row_index):
         pitch, sample_number = self.track.pattern[self.index][row_index]
         if pitch is None:
@@ -107,6 +110,7 @@ class Player:
         self.is_started = False
         self.is_playing = False
         self.row_callbacks = []
+        self.stop_callbacks = []
 
     def load_track(self, track):
         self.track = track
@@ -124,8 +128,20 @@ class Player:
 
         self.is_playing = True
 
+    def stop(self):
+        for chan in self.channels:
+            chan.stop()
+        self.is_started = False
+        self.is_playing = False
+
+        for callback in self.stop_callbacks:
+            callback()
+
     def on_play_row(self, callback):
         self.row_callbacks.append(callback)
+
+    def on_stop(self, callback):
+        self.stop_callbacks.append(callback)
 
     def tick(self):
         if not self.is_playing:
