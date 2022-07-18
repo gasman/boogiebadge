@@ -20,11 +20,20 @@ track = Track.from_json(json.loads(track_data))
 player = Player()
 player.load_track(track)
 
-print("Hello, MCH2022 Badge!")
 
-display.drawFill(display.WHITE)
-display.drawText(10, 10, "Hello, MCH2022 badgePython!", display.BLUE, "roboto_regular18")
-display.flush()
+def render_step_sequencer(pattern):
+    display.drawFill(display.WHITE)
+
+    for y, channel in enumerate(pattern):
+        for x, row in enumerate(channel):
+            if row[0]:
+                display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, 0x000000)
+            else:
+                display.drawRect(32 + x * 16, 88 + y * 16, 14, 14, False, 0x000000)
+    display.flush()
+
+
+render_step_sequencer(track.pattern)
 
 
 def tick(t):
@@ -37,10 +46,7 @@ timer.init(period=20, callback=tick)
 
 def on_action_btn(pressed):
     if pressed:
-        display.drawText(20, 20, "beep", display.BLUE, "roboto_regular18")
-        display.flush()
         player.start()
-        print(json.dumps(track.to_json()))
 
 buttons.attach(buttons.BTN_A, on_action_btn)
 buttons.attach(buttons.BTN_B, lambda pressed: system.launcher())
