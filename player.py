@@ -21,12 +21,50 @@ class Sample:
         self.waveform = waveform
         self.volumes = volumes
 
+    def to_json(self):
+        return {
+            'waveform': self.waveform,
+            'volumes': self.volumes,
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(
+            waveform=data['waveform'],
+            volumes=data['volumes'],
+        )
+
 
 class Track:
     def __init__(self, samples, pattern, tempo):
         self.samples = samples
         self.pattern = pattern
         self.tempo = tempo
+
+    def to_json(self):
+        return {
+            'samples': {
+                str(i): sample.to_json() for (i, sample) in self.samples.items()
+            },
+            'pattern': [
+                [list(row) for row in channel]
+                for channel in self.pattern
+            ],
+            'tempo': self.tempo
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(
+            samples={
+                int(i): Sample.from_json(sample) for (i, sample) in data['samples'].items()
+            },
+            pattern=[
+                [tuple(row) for row in channel]
+                for channel in data['pattern']
+            ],
+            tempo=data['tempo']
+        )
 
 
 class Channel:
