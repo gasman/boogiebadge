@@ -21,20 +21,48 @@ player = Player()
 player.load_track(track)
 
 
-def render_step_sequencer(pattern):
-    display.drawFill(display.WHITE)
+class StepSequencer:
+    def __init__(self, pattern):
+        self.pattern = pattern
+        self.active_column = None
 
-    for y, channel in enumerate(pattern):
-        for x, row in enumerate(channel):
-            if row[0]:
-                display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, 0x000000)
-            else:
-                display.drawRect(32 + x * 16, 88 + y * 16, 14, 14, False, 0x000000)
-    display.flush()
+    def render_all(self):
+        display.drawFill(display.WHITE)
+
+        for y, channel in enumerate(self.pattern):
+            for x, row in enumerate(channel):
+                self.render_cell(y, x, 0x000000)
+        display.flush()
+
+    def render_cell(self, y, x, colour):
+        if self.pattern[y][x][0]:
+            display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, colour)
+        else:
+            display.drawRect(32 + x * 16, 88 + y * 16, 14, 14, False, colour)
+
+    def render_column(self, x, colour):
+        for y, channel in enumerate(self.pattern):
+            self.render_cell(y, x, colour)
+
+    def unhighlight_column(self, flush=False):
+        if self.active_column is not None:
+            self.render_column(self.active_column, 0x000000)
+        if flush:
+            display.flush()
+
+    def highlight_column(self, column, flush=False):
+        if column != self.active_column:
+            self.unhighlight_column()
+            self.active_column = column
+            if column is not None:
+                self.render_column(column, 0x008800)
+        if flush:
+            display.flush()
 
 
-render_step_sequencer(track.pattern)
-
+sequencer = StepSequencer(track.pattern)
+sequencer.render_all()
+player.on_play_row(lambda row: sequencer.highlight_column(row, flush=True))
 
 def tick(t):
     player.tick()

@@ -106,6 +106,7 @@ class Player:
         self.channels = [Channel(i) for i in range(0, CHANNEL_COUNT)]
         self.is_started = False
         self.is_playing = False
+        self.row_callbacks = []
 
     def load_track(self, track):
         self.track = track
@@ -123,6 +124,9 @@ class Player:
 
         self.is_playing = True
 
+    def on_play_row(self, callback):
+        self.row_callbacks.append(callback)
+
     def tick(self):
         if not self.is_playing:
             return
@@ -130,6 +134,9 @@ class Player:
         if self.row_tick == 0:
             for chan in self.channels:
                 chan.load_row(self.row_index)
+
+            for callback in self.row_callbacks:
+                callback(self.row_index)
 
         for chan in self.channels:
             chan.play_tick()
