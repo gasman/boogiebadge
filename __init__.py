@@ -5,6 +5,7 @@ import system
 import json
 
 from .player import CHANNEL_COUNT, ROW_COUNT, Player, Track
+from .ui import Button
 
 WAVEFORM_SINE = 0
 WAVEFORM_SQUARE = 1
@@ -95,6 +96,10 @@ sequencer = StepSequencer(track.pattern)
 sequencer.render_all()
 player.on_play_row(lambda row: sequencer.highlight_column(row, flush=True))
 player.on_stop(lambda: sequencer.unhighlight_column(flush=True))
+
+play_button = Button("Play", 10, 10)
+play_button.draw()
+display.flush()
 
 def tick(t):
     player.tick()

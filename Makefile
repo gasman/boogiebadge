@@ -1,4 +1,4 @@
-FILES = __init__.py player.py
+FILES = __init__.py player.py ui.py
 
 all:
 	for file in $(FILES); do \
