@@ -1,6 +1,7 @@
 import sndmixer
 
 CHANNEL_COUNT = 4
+ROW_COUNT = 16
 
 
 # A-4 = 440Hz
