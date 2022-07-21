@@ -120,6 +120,17 @@ class StepSequencerWidget(Focusable, Widget):
 
         return True
 
+    def on_focus(self, button):
+        if button in (buttons.BTN_LEFT, buttons.BTN_UP):
+            self.cursor_y = CHANNEL_COUNT - 1
+        else:
+            self.cursor_y = 0
+        super().on_focus(button)
+
+    def on_blur(self, button):
+        self.render_cursor(0xffffff)
+        super().on_blur(button)
+
 
 sequencer_view = StepSequencerView(track)
 controller.set_view(sequencer_view)

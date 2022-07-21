@@ -52,11 +52,11 @@ class Focusable:
     def on_move(self, button):
         pass
 
-    def on_blur(self):
+    def on_blur(self, button):
         self.focused = False
         self.draw()
 
-    def on_focus(self):
+    def on_focus(self, button):
         self.focused = True
         self.draw()
 
@@ -114,14 +114,14 @@ class WidgetContainer:
             if keep_focus:
                 return True
             else:
-                self.active_widget.on_blur()
+                self.active_widget.on_blur(button)
                 if button in (buttons.BTN_UP, buttons.BTN_LEFT):
                     self.active_widget_index, self.active_widget = self.get_previous_focusable_widget()
                 else:
                     self.active_widget_index, self.active_widget = self.get_next_focusable_widget()
 
                 if self.active_widget:
-                    self.active_widget.on_focus()
+                    self.active_widget.on_focus(button)
                     return True
                 else:
                     return False
