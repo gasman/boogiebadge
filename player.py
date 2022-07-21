@@ -112,6 +112,7 @@ class Player:
         self.is_playing = False
         self.row_callbacks = []
         self.stop_callbacks = []
+        self.start_callbacks = []
 
     def load_track(self, track):
         self.track = track
@@ -128,6 +129,8 @@ class Player:
             self.is_started = True
 
         self.is_playing = True
+        for callback in self.start_callbacks:
+            callback()
 
     def stop(self):
         for chan in self.channels:
@@ -140,6 +143,9 @@ class Player:
 
     def on_play_row(self, callback):
         self.row_callbacks.append(callback)
+
+    def on_start(self, callback):
+        self.start_callbacks.append(callback)
 
     def on_stop(self, callback):
         self.stop_callbacks.append(callback)

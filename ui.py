@@ -21,6 +21,24 @@ class Controller:
         for button in (buttons.BTN_UP, buttons.BTN_DOWN, buttons.BTN_LEFT, buttons.BTN_RIGHT):
             self._add_joystick_event_handler(button)
 
+        def on_button_a(pressed):
+            if self.active_view:
+                if pressed:
+                    self.active_view.on_press_a()
+                else:
+                    self.active_view.on_release_a()
+
+        buttons.attach(buttons.BTN_A, on_button_a)
+
+        def on_button_b(pressed):
+            if self.active_view:
+                if pressed:
+                    self.active_view.on_press_b()
+                else:
+                    self.active_view.on_release_b()
+
+        buttons.attach(buttons.BTN_B, on_button_b)
+
     def _add_joystick_event_handler(self, button):
         def event_handler(pressed):
             if pressed:
@@ -50,6 +68,18 @@ class Focusable:
         super().__init__()
 
     def on_move(self, button):
+        pass
+
+    def on_press_a(self):
+        pass
+
+    def on_release_a(self):
+        pass
+
+    def on_press_b(self):
+        pass
+
+    def on_release_b(self):
         pass
 
     def on_blur(self, button):
@@ -126,6 +156,22 @@ class WidgetContainer:
                 else:
                     return False
 
+    def on_press_a(self):
+        if self.active_widget:
+            self.active_widget.on_press_a()
+
+    def on_release_a(self):
+        if self.active_widget:
+            self.active_widget.on_release_a()
+
+    def on_press_b(self):
+        if self.active_widget:
+            self.active_widget.on_press_b()
+
+    def on_release_b(self):
+        if self.active_widget:
+            self.active_widget.on_release_b()
+
     def draw(self):
         for widget in self.widgets:
             widget.draw()
@@ -162,6 +208,10 @@ class Button(Focusable, Widget):
         self.height = 16
         self.label_width = display.getTextWidth(self.label)
         self.label_height = display.getTextHeight(self.label)
+
+    def set_label(self, text):
+        self.label = text
+        self.draw()
 
     def draw(self):
         if self.focused:

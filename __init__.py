@@ -25,10 +25,18 @@ player = Player()
 player.load_track(track)
 
 
+class PlayButton(Button):
+    def on_press_a(self):
+        if player.is_playing:
+            player.stop()
+        else:
+            player.start()
+
+
 class StepSequencerView(View):
     def __init__(self, track):
         self.step_sequencer_widget = StepSequencerWidget(track.pattern)
-        self.play_button = Button("Play", 10, 10)
+        self.play_button = PlayButton("Play", 10, 10)
 
         self.widgets = [
             self.play_button,
@@ -38,7 +46,17 @@ class StepSequencerView(View):
 
     def activate(self):
         player.on_play_row(lambda row: self.step_sequencer_widget.highlight_column(row, flush=True))
-        player.on_stop(lambda: self.step_sequencer_widget.unhighlight_column(flush=True))
+
+        def on_start():
+            self.play_button.set_label("Stop")
+            display.flush()
+        player.on_start(on_start)
+
+        def on_stop():
+            self.step_sequencer_widget.unhighlight_column(flush=True)
+            self.play_button.set_label("Play")
+            display.flush()
+        player.on_stop(on_stop)
 
     def deactivate(self):
         pass
@@ -140,15 +158,4 @@ timer = machine.Timer(1)
 timer.init(period=20, callback=lambda t: player.tick())
 
 
-def on_btn_a(pressed):
-    if pressed:
-        player.start()
-
-def on_btn_b(pressed):
-    if pressed:
-        player.stop()
-
-
-buttons.attach(buttons.BTN_A, on_btn_a)
-buttons.attach(buttons.BTN_B, on_btn_b)
 buttons.attach(buttons.BTN_HOME, lambda pressed: system.launcher())
