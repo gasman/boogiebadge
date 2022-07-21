@@ -5,7 +5,7 @@ import system
 import json
 
 from .player import CHANNEL_COUNT, ROW_COUNT, Player, Track
-from .ui import Button
+from .ui import Button, Controller, Focusable, View, Widget
 
 WAVEFORM_SINE = 0
 WAVEFORM_SQUARE = 1
@@ -14,38 +14,7 @@ WAVEFORM_SAWTOOTH = 3
 WAVEFORM_NOISE = 4
 
 
-class Joystick:
-    def __init__(self):
-        self.timer = machine.Timer(1)
-        self.current_button = None
-        self.ticks_since_press = 0
-        self.debounce_ticks = 5
-        self.listener = None
-
-        def tick(t):
-            if self.current_button is not None:
-                self.ticks_since_press += 1
-                if self.ticks_since_press > self.debounce_ticks and self.listener:
-                    self.listener(self.current_button)
-
-        self.timer.init(period=100, callback=tick)
-
-        for button in (buttons.BTN_UP, buttons.BTN_DOWN, buttons.BTN_LEFT, buttons.BTN_RIGHT):
-            self.add_event_handler(button)
-
-    def add_event_handler(self, button):
-        def event_handler(pressed):
-            if pressed:
-                self.current_button = button
-                self.ticks_since_press = 0
-                self.listener(self.current_button)
-            elif self.current_button == button:
-                self.current_button = None
-
-        buttons.attach(button, event_handler)
-
-
-joystick = Joystick()
+controller = Controller()
 
 
 track_data = """{"pattern": [[[57, 1], [null, 0], [57, 1], [null, 0], [null, 0], [57, 1], [null, 0], [52, 1], [null, 0], [null, 0], [52, 1], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]], [[33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0]], [[null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]], [[null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]]], "samples": {"2": {"waveform": 3, "volumes": [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "1": {"waveform": 1, "volumes": [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}, "tempo": 5}"""
@@ -56,31 +25,41 @@ player = Player()
 player.load_track(track)
 
 
-class StepSequencer:
+class StepSequencerView(View):
+    def __init__(self, track):
+        self.step_sequencer_widget = StepSequencerWidget(track.pattern)
+        self.play_button = Button("Play", 10, 10)
+
+        self.widgets = [
+            self.play_button,
+            self.step_sequencer_widget,
+        ]
+        super().__init__()
+
+    def activate(self):
+        player.on_play_row(lambda row: self.step_sequencer_widget.highlight_column(row, flush=True))
+        player.on_stop(lambda: self.step_sequencer_widget.unhighlight_column(flush=True))
+
+    def deactivate(self):
+        pass
+        # TODO: detach event handlers from player
+
+
+class StepSequencerWidget(Focusable, Widget):
     def __init__(self, pattern):
         self.pattern = pattern
         self.active_column = None
         self.cursor_x = 0
         self.cursor_y = 0
+        super().__init__()
 
-    def activate(self):
-        self.render_all()
-        joystick.listener = lambda button: self.move(button)
-        player.on_play_row(lambda row: self.highlight_column(row, flush=True))
-        player.on_stop(lambda: self.unhighlight_column(flush=True))
-
-    def deactivate(self):
-        joystick.listener = None
-        # TODO: detach event handlers from player
-
-    def render_all(self):
-        display.drawFill(display.WHITE)
-
+    def draw(self):
         for y, channel in enumerate(self.pattern):
             for x, row in enumerate(channel):
                 self.render_cell(y, x, 0x000000)
-        self.render_cursor(0x0000cc)
-        display.flush()
+
+        if self.focused:
+            self.render_cursor(0x0000cc)
 
     def render_cell(self, y, x, colour):
         if self.pattern[y][x][0]:
@@ -123,25 +102,30 @@ class StepSequencer:
 
         display.flush()
 
-    def move(self, button):
+    def on_move(self, button):
         if button == buttons.BTN_UP:
-            self.set_cursor(self.cursor_x, (self.cursor_y - 1) % CHANNEL_COUNT)
+            if self.cursor_y == 0:
+                return False
+            else:
+                self.set_cursor(self.cursor_x, self.cursor_y - 1)
         elif button == buttons.BTN_DOWN:
-            self.set_cursor(self.cursor_x, (self.cursor_y + 1) % CHANNEL_COUNT)
+            if self.cursor_y == CHANNEL_COUNT - 1:
+                return False
+            else:
+                self.set_cursor(self.cursor_x, (self.cursor_y + 1) % CHANNEL_COUNT)
         elif button == buttons.BTN_LEFT:
             self.set_cursor((self.cursor_x - 1) % ROW_COUNT, self.cursor_y)
         elif button == buttons.BTN_RIGHT:
             self.set_cursor((self.cursor_x + 1) % ROW_COUNT, self.cursor_y)
 
+        return True
 
-sequencer = StepSequencer(track.pattern)
-sequencer.activate()
 
-play_button = Button("Play", 10, 10)
-play_button.draw()
-display.flush()
+sequencer_view = StepSequencerView(track)
+controller.set_view(sequencer_view)
 
-timer = machine.Timer(0)
+
+timer = machine.Timer(1)
 timer.init(period=20, callback=lambda t: player.tick())
 
 
