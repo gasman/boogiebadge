@@ -104,6 +104,8 @@ class StepSequencerView(View):
             display.flush()
         player.on_stop(on_stop)
 
+        self.play_button.on_focus()
+
     def on_press_start(self):
         if player.is_playing:
             player.stop()

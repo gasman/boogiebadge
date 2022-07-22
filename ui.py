@@ -77,11 +77,11 @@ class Focusable:
     def on_move(self, button):
         pass
 
-    def on_blur(self, button):
+    def on_blur(self, button=None):
         self.focused = False
         self.draw()
 
-    def on_focus(self, button):
+    def on_focus(self, button=None):
         self.focused = True
         self.draw()
 
