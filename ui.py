@@ -2,6 +2,11 @@ import buttons
 import display
 import machine
 
+NAMED_BUTTONS = [
+    (buttons.BTN_A, 'a'),
+    (buttons.BTN_B, 'b'),
+]
+
 class Controller:
     def __init__(self, timer_id=0):
         self.timer = machine.Timer(timer_id)
@@ -21,27 +26,8 @@ class Controller:
         for button in (buttons.BTN_UP, buttons.BTN_DOWN, buttons.BTN_LEFT, buttons.BTN_RIGHT):
             self._add_joystick_event_handler(button)
 
-        def on_button_a(pressed):
-            if self.active_view:
-                if pressed:
-                    self.active_view.on_press_a()
-                else:
-                    self.active_view.on_release_a()
-
-                display.flush()  # TODO: only flush if a screen update happened
-
-        buttons.attach(buttons.BTN_A, on_button_a)
-
-        def on_button_b(pressed):
-            if self.active_view:
-                if pressed:
-                    self.active_view.on_press_b()
-                else:
-                    self.active_view.on_release_b()
-
-                display.flush()  # TODO: only flush if a screen update happened
-
-        buttons.attach(buttons.BTN_B, on_button_b)
+        for button, name in NAMED_BUTTONS:
+            self._add_button_event_handler(button, name)
 
     def _add_joystick_event_handler(self, button):
         def event_handler(pressed):
@@ -56,6 +42,21 @@ class Controller:
             display.flush()  # TODO: only flush if a screen update happened
 
         buttons.attach(button, event_handler)
+
+    def _add_button_event_handler(self, button, name):
+        press_fn_name = "on_press_%s" % name
+        release_fn_name = "on_release_%s" % name
+        def on_button(pressed):
+            if self.active_view:
+                if pressed:
+                    getattr(self.active_view, press_fn_name)()
+                else:
+                    getattr(self.active_view, release_fn_name)()
+
+                display.flush()  # TODO: only flush if a screen update happened
+
+        buttons.attach(button, on_button)
+
 
     def set_view(self, view):
         self.active_view = view
@@ -74,18 +75,6 @@ class Focusable:
     def on_move(self, button):
         pass
 
-    def on_press_a(self):
-        pass
-
-    def on_release_a(self):
-        pass
-
-    def on_press_b(self):
-        pass
-
-    def on_release_b(self):
-        pass
-
     def on_blur(self, button):
         self.focused = False
         self.draw()
@@ -93,6 +82,18 @@ class Focusable:
     def on_focus(self, button):
         self.focused = True
         self.draw()
+
+
+def _add_focusable_button_method(name):
+    def do_nothing(self):
+        pass
+
+    setattr(Focusable, name, do_nothing)
+
+
+for button, name in NAMED_BUTTONS:
+    _add_focusable_button_method("on_press_%s" % name)
+    _add_focusable_button_method("on_release_%s" % name)
 
 
 class WidgetContainer:
@@ -160,25 +161,22 @@ class WidgetContainer:
                 else:
                     return False
 
-    def on_press_a(self):
-        if self.active_widget:
-            self.active_widget.on_press_a()
-
-    def on_release_a(self):
-        if self.active_widget:
-            self.active_widget.on_release_a()
-
-    def on_press_b(self):
-        if self.active_widget:
-            self.active_widget.on_press_b()
-
-    def on_release_b(self):
-        if self.active_widget:
-            self.active_widget.on_release_b()
-
     def draw(self):
         for widget in self.widgets:
             widget.draw()
+
+
+def _add_widget_container_button_method(name):
+    def delegate_to_active_widget(self):
+        if self.active_widget:
+            getattr(self.active_widget, name)()
+
+    setattr(WidgetContainer, name, delegate_to_active_widget)
+
+
+for button, name in NAMED_BUTTONS:
+    _add_widget_container_button_method("on_press_%s" % name)
+    _add_widget_container_button_method("on_release_%s" % name)
 
 
 class View(WidgetContainer):
