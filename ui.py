@@ -69,6 +69,7 @@ class Controller:
 
 class Focusable:
     focusable = True
+    help_text = ""
 
     def __init__(self):
         self.focused = False
@@ -77,9 +78,26 @@ class Focusable:
     def on_move(self, button):
         pass
 
+    def _hide_help(self):
+        if self.help_text:
+            display.drawRect(
+                0, display.height() - 16, display.width(), 16, True, 0xffffff
+            )
+
+    def _show_help(self):
+        if self.help_text:
+            display.drawText(
+                0, display.height() - 16, self.help_text, 0x000000
+            )
+
+    def draw(self):
+        if self.focused:
+            self._show_help()
+
     def on_blur(self, button=None):
         self.focused = False
         self.draw()
+        self._hide_help()
 
     def on_focus(self, button=None):
         self.focused = True
@@ -237,9 +255,12 @@ class Button(Focusable, Widget):
                 self.label,
                 0x000000,
             )
+        super().draw()
 
 
 class NumberInput(Focusable, Widget):
+    help_text = "hold A and move up / down to change value"
+
     def __init__(self, label, value, x, y, min_value=None, max_value=None, on_change=None):
         super().__init__()
         self.label = label
@@ -296,3 +317,4 @@ class NumberInput(Focusable, Widget):
         )
         right_x = self.x + self.label_width + 5 + 32
         display.drawText(right_x - self.value_width - 2, self.y, str(self.value), 0x000000)
+        super().draw()

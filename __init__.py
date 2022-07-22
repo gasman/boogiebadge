@@ -76,6 +76,8 @@ player.load_track(track)
 
 
 class PlayButton(Button):
+    help_text = "press A or START to play / stop"
+
     def on_press_a(self):
         if player.is_playing:
             player.stop()
@@ -133,6 +135,8 @@ class StepSequencerView(View):
 
 
 class StepSequencerWidget(Focusable, Widget):
+    help_text = "press A to toggle drum on / off"
+
     def __init__(self, patterns):
         self.patterns = patterns
         self.active_column = None
@@ -154,6 +158,8 @@ class StepSequencerWidget(Focusable, Widget):
 
         if self.focused:
             self.render_cursor(0x0000cc)
+
+        super().draw()
 
     def render_cell(self, y, x, colour):
         if self.patterns[y].rows[x][0]:
