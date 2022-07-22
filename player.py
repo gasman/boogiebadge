@@ -18,14 +18,16 @@ TONES = [
 
 
 class Sample:
-    def __init__(self, waveform, volumes):
+    def __init__(self, waveform, volumes, frequencies):
         self.waveform = waveform
         self.volumes = volumes
+        self.frequencies = frequencies
 
     def to_json(self):
         return {
             'waveform': self.waveform,
             'volumes': self.volumes,
+            'frequencies': self.frequencies,
         }
 
     @classmethod
@@ -33,6 +35,7 @@ class Sample:
         return cls(
             waveform=data['waveform'],
             volumes=data['volumes'],
+            frequencies=data['frequencies'],
         )
 
 
@@ -120,7 +123,8 @@ class Channel:
             sndmixer.volume(self.id, 0)
         else:
             sndmixer.waveform(self.id, self.current_sample.waveform)
-            sndmixer.freq(self.id, TONES[self.current_pitch])
+            freq = max(0, TONES[self.current_pitch] + self.current_sample.frequencies[self.sample_tick])
+            sndmixer.freq(self.id, freq)
             sndmixer.volume(self.id, self.current_sample.volumes[self.sample_tick])
 
         self.sample_tick += 1
