@@ -40,16 +40,18 @@ class Sample:
 
 
 class Pattern:
-    def __init__(self, rows, default_sample, default_pitch):
+    def __init__(self, rows, default_sample, default_pitch, label=""):
         self.rows = rows
         self.default_sample = default_sample
         self.default_pitch = default_pitch
+        self.label = label
 
     def to_json(self):
         return {
             'rows': [list(row) for row in self.rows],
             'default_sample': self.default_sample,
             'default_pitch': self.default_pitch,
+            'label': self.label,
         }
 
     @classmethod
@@ -58,6 +60,7 @@ class Pattern:
             rows=[tuple(row) for row in data['rows']],
             default_sample=data['default_sample'],
             default_pitch=data['default_pitch'],
+            label=data.get('label', ""),
         )
 
 

@@ -22,22 +22,26 @@ track_data = """{
         {
             "rows": [[40, 1], [null, 0], [40, 1], [null, 0], [null, 0], [null, 0], [40, 1], [null, 0], [null, 0], [null, 0], [40, 1], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]],
             "default_sample": 1,
-            "default_pitch": 40
+            "default_pitch": 40,
+            "label": "kick"
         },
         {
             "rows": [[null, 0], [null, 0], [null, 0], [null, 0], [20, 2], [null, 0], [null, 0], [20, 2], [null, 0], [20, 2], [null, 0], [null, 0], [20, 2], [null, 0], [null, 0], [null, 0]],
             "default_sample": 2,
-            "default_pitch": 20
+            "default_pitch": 20,
+            "label": "snare"
         },
         {
             "rows": [[25, 3], [25, 3], [25, 3], [25, 3], [null, 0], [null, 0], [25, 3], [25, 3], [25, 3], [25, 3], [25, 3], [25, 3], [null, 0], [null, 0], [25, 3], [25, 3]],
             "default_sample": 3,
-            "default_pitch": 25
+            "default_pitch": 25,
+            "label": "hh closed"
         },
         {
             "rows": [[null, 0], [null, 0], [null, 0], [null, 0], [30, 4], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [30, 4], [null, 0], [null, 0], [null, 0]],
             "default_sample": 4,
-            "default_pitch": 30
+            "default_pitch": 30,
+            "label": "hh open"
         }
     ],
     "samples": {
@@ -127,6 +131,13 @@ class StepSequencerWidget(Focusable, Widget):
 
     def draw(self):
         for y, pattern in enumerate(self.patterns):
+            display.drawText(
+                0,
+                87 + y*16,
+                pattern.label,
+                0x000000,
+            )
+
             for x, row in enumerate(pattern.rows):
                 self.render_cell(y, x, 0x000000)
 
@@ -135,10 +146,10 @@ class StepSequencerWidget(Focusable, Widget):
 
     def render_cell(self, y, x, colour):
         if self.patterns[y].rows[x][0]:
-            display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, colour)
+            display.drawRect(64 + x * 16, 88 + y * 16, 15, 15, True, colour)
         else:
-            display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, 0xffffff)
-            display.drawRect(32 + x * 16, 88 + y * 16, 14, 14, False, colour)
+            display.drawRect(64 + x * 16, 88 + y * 16, 15, 15, True, 0xffffff)
+            display.drawRect(64 + x * 16, 88 + y * 16, 14, 14, False, colour)
 
     def render_column(self, x, colour):
         for y, pattern in enumerate(self.patterns):
@@ -160,7 +171,7 @@ class StepSequencerWidget(Focusable, Widget):
             display.flush()
 
     def render_cursor(self, colour):
-        display.drawRect(31 + self.cursor_x * 16, 87 + self.cursor_y * 16, 16, 16, False, colour)
+        display.drawRect(63 + self.cursor_x * 16, 87 + self.cursor_y * 16, 16, 16, False, colour)
 
     def set_cursor(self, x, y):
         if x == self.cursor_x and y == self.cursor_y:
