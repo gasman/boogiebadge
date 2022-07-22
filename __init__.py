@@ -17,9 +17,37 @@ WAVEFORM_NOISE = 4
 controller = Controller()
 
 
-track_data = """{"pattern": [[[57, 1], [null, 0], [57, 1], [null, 0], [null, 0], [57, 1], [null, 0], [52, 1], [null, 0], [null, 0], [52, 1], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]], [[33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0]], [[null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]], [[null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]]], "samples": {"2": {"waveform": 3, "volumes": [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "1": {"waveform": 1, "volumes": [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}, "tempo": 5}"""
+track_data = """{
+    "patterns": [
+        {
+            "rows": [[57, 1], [null, 0], [57, 1], [null, 0], [null, 0], [57, 1], [null, 0], [52, 1], [null, 0], [null, 0], [52, 1], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]],
+            "default_sample": 1,
+            "default_pitch": 57
+        },
+        {
+            "rows": [[33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0], [33, 2], [null, 0], [null, 0], [null, 0]],
+            "default_sample": 2,
+            "default_pitch": 33
+        },
+        {
+            "rows": [[null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]],
+            "default_sample": 1,
+            "default_pitch": 57
+        },
+        {
+            "rows": [[null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0], [null, 0]],
+            "default_sample": 2,
+            "default_pitch": 33
+        }
+    ],
+    "samples": {
+        "2": {"waveform": 3, "volumes": [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+        "1": {"waveform": 1, "volumes": [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+    },
+    "tempo": 5
+}"""
 track = Track.from_json(json.loads(track_data))
-
+print(json.dumps(track.to_json()))
 
 player = Player()
 player.load_track(track)
@@ -35,7 +63,7 @@ class PlayButton(Button):
 
 class StepSequencerView(View):
     def __init__(self, track):
-        self.step_sequencer_widget = StepSequencerWidget(track.pattern)
+        self.step_sequencer_widget = StepSequencerWidget(track.patterns)
         self.play_button = PlayButton("Play", 10, 10)
 
         self.widgets = [
@@ -70,30 +98,30 @@ class StepSequencerView(View):
 
 
 class StepSequencerWidget(Focusable, Widget):
-    def __init__(self, pattern):
-        self.pattern = pattern
+    def __init__(self, patterns):
+        self.patterns = patterns
         self.active_column = None
         self.cursor_x = 0
         self.cursor_y = 0
         super().__init__()
 
     def draw(self):
-        for y, channel in enumerate(self.pattern):
-            for x, row in enumerate(channel):
+        for y, pattern in enumerate(self.patterns):
+            for x, row in enumerate(pattern.rows):
                 self.render_cell(y, x, 0x000000)
 
         if self.focused:
             self.render_cursor(0x0000cc)
 
     def render_cell(self, y, x, colour):
-        if self.pattern[y][x][0]:
+        if self.patterns[y].rows[x][0]:
             display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, colour)
         else:
             display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, 0xffffff)
             display.drawRect(32 + x * 16, 88 + y * 16, 14, 14, False, colour)
 
     def render_column(self, x, colour):
-        for y, channel in enumerate(self.pattern):
+        for y, pattern in enumerate(self.patterns):
             self.render_cell(y, x, colour)
 
     def unhighlight_column(self, flush=False):
@@ -157,10 +185,11 @@ class StepSequencerWidget(Focusable, Widget):
         super().on_blur(button)
 
     def on_press_a(self):
-        if self.pattern[self.cursor_y][self.cursor_x][0]:
-            self.pattern[self.cursor_y][self.cursor_x] = None, 0
+        pattern = self.patterns[self.cursor_y]
+        if pattern.rows[self.cursor_x][0]:
+            pattern.rows[self.cursor_x] = None, 0
         else:
-            self.pattern[self.cursor_y][self.cursor_x] = (57, self.cursor_y + 1)
+            pattern.rows[self.cursor_x] = (pattern.default_pitch, pattern.default_sample)
 
         self.render_cell(self.cursor_y, self.cursor_x, 0x000000)
 

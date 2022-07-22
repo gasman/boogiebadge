@@ -36,10 +36,32 @@ class Sample:
         )
 
 
+class Pattern:
+    def __init__(self, rows, default_sample, default_pitch):
+        self.rows = rows
+        self.default_sample = default_sample
+        self.default_pitch = default_pitch
+
+    def to_json(self):
+        return {
+            'rows': [list(row) for row in self.rows],
+            'default_sample': self.default_sample,
+            'default_pitch': self.default_pitch,
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(
+            rows=[tuple(row) for row in data['rows']],
+            default_sample=data['default_sample'],
+            default_pitch=data['default_pitch'],
+        )
+
+
 class Track:
-    def __init__(self, samples, pattern, tempo):
+    def __init__(self, samples, patterns, tempo):
         self.samples = samples
-        self.pattern = pattern
+        self.patterns = patterns
         self.tempo = tempo
 
     def to_json(self):
@@ -47,9 +69,9 @@ class Track:
             'samples': {
                 str(i): sample.to_json() for (i, sample) in self.samples.items()
             },
-            'pattern': [
-                [list(row) for row in channel]
-                for channel in self.pattern
+            'patterns': [
+                pattern.to_json()
+                for pattern in self.patterns
             ],
             'tempo': self.tempo
         }
@@ -60,9 +82,9 @@ class Track:
             samples={
                 int(i): Sample.from_json(sample) for (i, sample) in data['samples'].items()
             },
-            pattern=[
-                [tuple(row) for row in channel]
-                for channel in data['pattern']
+            patterns=[
+                Pattern.from_json(pattern)
+                for pattern in data['patterns']
             ],
             tempo=data['tempo']
         )
@@ -84,7 +106,7 @@ class Channel:
         sndmixer.pause(self.id)
 
     def load_row(self, row_index):
-        pitch, sample_number = self.track.pattern[self.index][row_index]
+        pitch, sample_number = self.track.patterns[self.index].rows[row_index]
         if pitch is None:
             return
 
