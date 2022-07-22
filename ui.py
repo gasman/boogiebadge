@@ -215,6 +215,8 @@ class Button(Focusable, Widget):
 
     def set_label(self, text):
         self.label = text
+        self.label_width = display.getTextWidth(self.label)
+        self.label_height = display.getTextHeight(self.label)
         self.draw()
 
     def draw(self):
@@ -235,3 +237,62 @@ class Button(Focusable, Widget):
                 self.label,
                 0x000000,
             )
+
+
+class NumberInput(Focusable, Widget):
+    def __init__(self, label, value, x, y, min_value=None, max_value=None, on_change=None):
+        super().__init__()
+        self.label = label
+        self.value = value
+        self.min_value = min_value
+        self.max_value = max_value
+        self.x = x
+        self.y = y
+        self.height = 16
+        self.label_width = display.getTextWidth(self.label)
+        self.value_width = display.getTextWidth(str(self.value))
+        self.holding_button = False
+
+        self.on_change = on_change
+
+    def on_press_a(self):
+        self.holding_button = True
+
+    def on_release_a(self):
+        self.holding_button = False
+
+    def on_move(self, button):
+        if self.holding_button:
+            if button == buttons.BTN_UP:
+                new_value = self.value + 1
+                if self.max_value is not None and new_value > self.max_value:
+                    new_value = self.max_value
+            elif button == buttons.BTN_DOWN:
+                new_value = self.value - 1
+                if self.min_value is not None and new_value < self.min_value:
+                    new_value = self.min_value
+
+            if new_value != self.value:
+                self.value = new_value
+                self.value_width = display.getTextWidth(str(self.value))
+                self.draw()
+                if self.on_change:
+                    self.on_change(self.value)
+            return True
+
+    def draw(self):
+        display.drawText(self.x, self.y, self.label, 0x000000)
+        if self.focused:
+            display.drawRect(
+                self.x + self.label_width + 5, self.y, 32, self.height, True, 0x0fffff
+            )
+        else:
+            display.drawRect(
+                self.x + self.label_width + 5, self.y, 32, self.height, True, 0xffffff
+            )
+
+        display.drawRect(
+            self.x + self.label_width + 5, self.y, 32, self.height, False, 0x000000
+        )
+        right_x = self.x + self.label_width + 5 + 32
+        display.drawText(right_x - self.value_width - 2, self.y, str(self.value), 0x000000)

@@ -5,7 +5,7 @@ import system
 import json
 
 from .player import CHANNEL_COUNT, ROW_COUNT, Player, Track
-from .ui import Button, Controller, Focusable, View, Widget
+from .ui import Button, Controller, Focusable, NumberInput, View, Widget
 
 WAVEFORM_SINE = 0
 WAVEFORM_SQUARE = 1
@@ -88,8 +88,19 @@ class StepSequencerView(View):
         self.step_sequencer_widget = StepSequencerWidget(track.patterns)
         self.play_button = PlayButton("Play", 10, 10)
 
+        def change_tempo(new_tempo):
+            track.tempo = new_tempo
+
+        self.tempo_input = NumberInput(
+            "Tempo", track.tempo, 60, 10,
+            min_value=1,
+            max_value=15,
+            on_change=change_tempo,
+        )
+
         self.widgets = [
             self.play_button,
+            self.tempo_input,
             self.step_sequencer_widget,
         ]
         super().__init__()
