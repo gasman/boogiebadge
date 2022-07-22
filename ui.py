@@ -5,6 +5,8 @@ import machine
 NAMED_BUTTONS = [
     (buttons.BTN_A, 'a'),
     (buttons.BTN_B, 'b'),
+    (buttons.BTN_START, 'start'),
+    (buttons.BTN_SELECT, 'SELECT'),
 ]
 
 class Controller:

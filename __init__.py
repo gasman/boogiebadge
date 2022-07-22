@@ -58,6 +58,12 @@ class StepSequencerView(View):
             display.flush()
         player.on_stop(on_stop)
 
+    def on_press_start(self):
+        if player.is_playing:
+            player.stop()
+        else:
+            player.start()
+
     def deactivate(self):
         pass
         # TODO: detach event handlers from player
