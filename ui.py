@@ -28,6 +28,8 @@ class Controller:
                 else:
                     self.active_view.on_release_a()
 
+                display.flush()  # TODO: only flush if a screen update happened
+
         buttons.attach(buttons.BTN_A, on_button_a)
 
         def on_button_b(pressed):
@@ -36,6 +38,8 @@ class Controller:
                     self.active_view.on_press_b()
                 else:
                     self.active_view.on_release_b()
+
+                display.flush()  # TODO: only flush if a screen update happened
 
         buttons.attach(buttons.BTN_B, on_button_b)
 

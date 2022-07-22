@@ -83,6 +83,7 @@ class StepSequencerWidget(Focusable, Widget):
         if self.pattern[y][x][0]:
             display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, colour)
         else:
+            display.drawRect(32 + x * 16, 88 + y * 16, 15, 15, True, 0xffffff)
             display.drawRect(32 + x * 16, 88 + y * 16, 14, 14, False, colour)
 
     def render_column(self, x, colour):
@@ -149,6 +150,15 @@ class StepSequencerWidget(Focusable, Widget):
         self.render_cursor(0xffffff)
         super().on_blur(button)
 
+    def on_press_a(self):
+        if self.pattern[self.cursor_y][self.cursor_x][0]:
+            self.pattern[self.cursor_y][self.cursor_x] = None, 0
+            colour = 0xffffff;
+        else:
+            self.pattern[self.cursor_y][self.cursor_x] = (57, self.cursor_y + 1)
+            colour = 0x000000;
+
+        self.render_cell(self.cursor_y, self.cursor_x, colour)
 
 sequencer_view = StepSequencerView(track)
 controller.set_view(sequencer_view)
