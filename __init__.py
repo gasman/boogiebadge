@@ -159,12 +159,10 @@ class StepSequencerWidget(Focusable, Widget):
     def on_press_a(self):
         if self.pattern[self.cursor_y][self.cursor_x][0]:
             self.pattern[self.cursor_y][self.cursor_x] = None, 0
-            colour = 0xffffff;
         else:
             self.pattern[self.cursor_y][self.cursor_x] = (57, self.cursor_y + 1)
-            colour = 0x000000;
 
-        self.render_cell(self.cursor_y, self.cursor_x, colour)
+        self.render_cell(self.cursor_y, self.cursor_x, 0x000000)
 
 sequencer_view = StepSequencerView(track)
 controller.set_view(sequencer_view)
